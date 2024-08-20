@@ -9,6 +9,47 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String
+  email        String        @unique
+  password     String
+  createdAt    DateTime      @default(now())
+  subscription Subscription?
+}
+
+model Subscription {
+  id           String      @id @default(uuid())
+  userId       String      @unique
+  plan         Plan
+  status       Status
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id])
+  couponCode   CouponCode? @relation(fields: [couponCodeId], references: [id])
+  couponCodeId String?
+}
+
+model CouponCode {
+  id            String         @id @default(uuid())
+  code          String         @unique
+  discount      Float // Percentage discount or flat amount
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  expiresAt     DateTime?
+  subscriptions Subscription[]
+}
+
+enum Plan {
+  FREE
+  PAID
+}
+
+enum Status {
+  ACTIVE
+  EXPIRED
 }
